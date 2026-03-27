@@ -1,0 +1,1 @@
+SRC_MAIN := ./src/app_logic.cpp ./src/animation/Model.cpp ./src/animation/Matstack.cpp ./src/app_callbacks.cpp ./src/rendering/Texture.cpp ./src/rendering/VBO.cpp ./src/rendering/Mesh.cpp ./src/rendering/EBO.cpp ./src/rendering/VAO.cpp ./src/rendering/ObjLoader.cpp ./src/rendering/Camera.cpp ./src/rendering/ShaderClass.cpp ./src/app_state.cpp ./src/main.cpp 
