@@ -12,6 +12,8 @@
 #include "headers/app_logic.hpp"
 #include "headers/Model.hpp"
 #include "headers/Matstack.hpp"
+#include "headers/Animation.hpp"
+#include "headers/Animations.hpp"
 
 int main(void) {
 	GLFWwindow* window = initGLFW();
@@ -19,7 +21,6 @@ int main(void) {
 		return -1;
 
 	Model entityModel;
-	Matstack matstack;
 	Shader shaderProgram("src/shaders/default.vert", "src/shaders/default.frag");
 	shaderProgram.Activate();
 
@@ -27,6 +28,11 @@ int main(void) {
 	shaderProgram.setInt("ourTexture", 0);
 
 	while (!glfwWindowShouldClose(window)) {
+		// Update timing FIRST
+		float currentFrame = glfwGetTime();
+		deltaTime = currentFrame - lastFrame;
+		lastFrame = currentFrame;
+
 		// Input and events
 		processInput(window);
 		glfwPollEvents();
@@ -36,7 +42,6 @@ int main(void) {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		// Set up transformation matrices
-		glm::mat4 model = matstack.stack.back();
 		glm::mat4 view = camera.GetViewMatrix();
 		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), BASE_ASPECT_RATIO, 0.1f, 100.0f);
 
@@ -49,21 +54,21 @@ int main(void) {
 		shaderProgram.setMat4("view", view);
 		shaderProgram.setMat4("projection", projection);
 
-		matstack.pushMatrix();
-		matstack.scale(glm::vec3(0.5f, 2.0f, 0.5f));
-		matstack.translate(glm::vec3(1.0f, 0.0f, -0.7f));
-		//matstack.rotate((float)glfwGetTime() * 50.0f, glm::vec3(0.0f, 1.0f, 0.0f));
-		model = matstack.stack.back();
-		entityModel.DrawCube(shaderProgram, model);
-		matstack.popMatrix();
-		
-		// Swap buffers and update timing
+		if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
+		    entityModel.setAnimation(Animations::idle());
+		if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS)
+		    entityModel.setAnimation(Animations::walk());
+		if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS)
+		    entityModel.setAnimation(Animations::jump());
+		if (glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS)
+		    entityModel.setAnimation(Animations::disco());
+
+		entityModel.updateAnimation(deltaTime);
+		entityModel.DrawModel(shaderProgram);
+
+		// Swap buffers
 		glfwSwapBuffers(window);
 		glfwSwapInterval(1);
-
-		float currentFrame = glfwGetTime();
-		deltaTime = currentFrame - lastFrame;
-		lastFrame = currentFrame;
 	}
 
 	glfwTerminate();

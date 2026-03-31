@@ -77,6 +77,7 @@ void processInput(GLFWwindow *window)
 		camera.ProcessKeyboard(UP, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
 		camera.ProcessKeyboard(DOWN, deltaTime);
+
 }
 
 void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
