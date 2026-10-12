@@ -85,8 +85,3 @@ void ShaderProgram::setVec3(const char* name, const Vec3& value) const
 {
 	glUniform3f(location(name), value.x, value.y, value.z);
 }
-
-void ShaderProgram::setFloat(const char* name, float value) const
-{
-	glUniform1f(location(name), value);
-}

@@ -2,6 +2,7 @@
 
 #include "math/MathUtils.hpp"
 
+#include <algorithm>
 #include <cmath>
 
 namespace clips {

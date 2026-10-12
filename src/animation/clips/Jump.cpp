@@ -1,8 +1,6 @@
 #include "animation/KeyframeTrack.hpp"
 #include "animation/clips/Clips.hpp"
 
-#include "math/MathUtils.hpp"
-
 #include <cmath>
 
 namespace clips {

@@ -19,7 +19,6 @@ public:
 	void use() const;
 	void setMat4(const char* name, const Mat4& value) const;
 	void setVec3(const char* name, const Vec3& value) const;
-	void setFloat(const char* name, float value) const;
 
 private:
 	GLint location(const char* name) const;
