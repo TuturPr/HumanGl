@@ -781,3 +781,115 @@ TEST(HumanModelShoulders, UpperArmTopStaysLevelAfterResizingTheTorso)
 	for (auto arm : {BodyPart::UpperArmLeft, BodyPart::UpperArmRight})
 		EXPECT_NEAR(highestCornerY(d.matrix(arm)), highestCornerY(d.matrix(BodyPart::Torso)), EPS) << bodyPartName(arm);
 }
+
+// ----------------------------------------------------------------------------
+// Rotation order at shoulders and hips: flexion swings the abducted limb, so
+// abduction still works when the limb is flexed.
+
+namespace {
+
+Vec3 handCenter(const Pose& pose, BodyPart hand = BodyPart::HandLeft)
+{
+	return drawModel(HumanModel{}, pose).center(hand);
+}
+
+Vec3 footCenter(const Pose& pose, BodyPart foot = BodyPart::FootLeft)
+{
+	return drawModel(HumanModel{}, pose).center(foot);
+}
+
+Pose armPose(Side side, float flex, float abduct)
+{
+	Pose pose;
+	ArmPose& arm = side == Side::Left ? pose.leftArm : pose.rightArm;
+	arm.shoulderFlex = flex;
+	arm.shoulderAbduct = abduct;
+	return pose;
+}
+
+Pose legPose(Side side, float flex, float abduct)
+{
+	Pose pose;
+	LegPose& leg = side == Side::Left ? pose.leftLeg : pose.rightLeg;
+	leg.hipFlex = flex;
+	leg.hipAbduct = abduct;
+	return pose;
+}
+
+}
+
+TEST(HumanModelRotationOrder, FlexedArmPutsTheHandInFrontOfTheShoulder)
+{
+	const Vec3 hand = handCenter(armPose(Side::Left, 90.0f, 0.0f));
+	const Vec3 rest = handCenter(Pose{});
+	EXPECT_GT(hand.z, rest.z + 0.5f);
+	EXPECT_NEAR(hand.x, rest.x, 1e-3f);
+}
+
+TEST(HumanModelRotationOrder, AbductionStillMovesTheLeftHandOutwardWhenTheArmIsFlexed)
+{
+	const Vec3 straight = handCenter(armPose(Side::Left, 90.0f, 0.0f));
+	const Vec3 out = handCenter(armPose(Side::Left, 90.0f, 30.0f));
+	const Vec3 further = handCenter(armPose(Side::Left, 90.0f, 60.0f));
+	EXPECT_GT(out.x, straight.x + 0.1f);
+	EXPECT_GT(further.x, out.x + 0.1f);
+}
+
+TEST(HumanModelRotationOrder, AbductionStillMovesTheRightHandOutwardWhenTheArmIsFlexed)
+{
+	const Vec3 straight = handCenter(armPose(Side::Right, 90.0f, 0.0f), BodyPart::HandRight);
+	const Vec3 out = handCenter(armPose(Side::Right, 90.0f, 30.0f), BodyPart::HandRight);
+	EXPECT_LT(out.x, straight.x - 0.1f);
+}
+
+TEST(HumanModelRotationOrder, NegativeAbductionMovesTheFlexedHandTowardTheMidline)
+{
+	const Vec3 straight = handCenter(armPose(Side::Left, 90.0f, 0.0f));
+	const Vec3 inward = handCenter(armPose(Side::Left, 90.0f, -25.0f));
+	EXPECT_LT(inward.x, straight.x - 0.05f);
+	EXPECT_GT(inward.z, straight.z - 0.5f);	// the hand is still in front
+}
+
+TEST(HumanModelRotationOrder, FlexedAbductedHandStaysAtShoulderHeight)
+{
+	const Vec3 straight = handCenter(armPose(Side::Left, 90.0f, 0.0f));
+	const Vec3 out = handCenter(armPose(Side::Left, 90.0f, 45.0f));
+	EXPECT_NEAR(out.y, straight.y, 1e-3f);
+}
+
+TEST(HumanModelRotationOrder, TPoseWithoutFlexionPutsTheHandOutAtShoulderHeight)
+{
+	const HumanModel model;
+	const float shoulderY = -std::min(model.dimensions().size(BodyPart::UpperArmLeft).x,
+									 model.dimensions().size(BodyPart::UpperArmLeft).z) / 2.0f;
+	const Vec3 hand = handCenter(armPose(Side::Left, 0.0f, 90.0f));
+	const Vec3 rest = handCenter(Pose{});
+	EXPECT_NEAR(hand.y, shoulderY, 1e-3f);
+	EXPECT_NEAR(hand.z, 0.0f, 1e-3f);
+	EXPECT_GT(hand.x, rest.x + 0.5f);
+}
+
+TEST(HumanModelRotationOrder, AbductionStillMovesTheFootOutwardWhenTheLegIsFlexed)
+{
+	const Vec3 straight = footCenter(legPose(Side::Left, 90.0f, 0.0f));
+	const Vec3 out = footCenter(legPose(Side::Left, 90.0f, 30.0f));
+	const Vec3 in = footCenter(legPose(Side::Left, 90.0f, -20.0f));
+	EXPECT_GT(straight.z, footCenter(Pose{}).z + 0.5f);
+	EXPECT_GT(out.x, straight.x + 0.1f);
+	EXPECT_LT(in.x, straight.x - 0.05f);
+}
+
+TEST(HumanModelRotationOrder, RightFootAbductsOutwardWhenTheLegIsFlexed)
+{
+	const Vec3 straight = footCenter(legPose(Side::Right, 90.0f, 0.0f), BodyPart::FootRight);
+	const Vec3 out = footCenter(legPose(Side::Right, 90.0f, 30.0f), BodyPart::FootRight);
+	EXPECT_LT(out.x, straight.x - 0.1f);
+}
+
+TEST(HumanModelRotationOrder, LegWithoutFlexionAbductsSideways)
+{
+	const Vec3 hand = footCenter(legPose(Side::Left, 0.0f, 90.0f));
+	const Vec3 rest = footCenter(Pose{});
+	EXPECT_GT(hand.x, rest.x + 0.5f);
+	EXPECT_NEAR(hand.z, rest.z, 0.2f);
+}
