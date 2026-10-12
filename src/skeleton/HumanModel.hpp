@@ -35,9 +35,13 @@ private:
 	void drawLeg(MatrixStack& stack, Side side, const LegPose& leg, IPartDrawer& drawer) const;
 
 	// Draws a limb segment hanging from the current joint along -Y. It is
-	// stretched past both joints by half its thickness so that the rounded
-	// ends overlap and no gap appears when the joint bends.
-	void drawSegment(MatrixStack& stack, BodyPart part, bool extendDistal, IPartDrawer& drawer) const;
+	// stretched past its joints (by half its thickness at the top and by
+	// `distalOverlap` at the bottom) so that the rounded ends of neighbouring
+	// parts overlap and no gap appears when a joint bends.
+	void drawSegment(MatrixStack& stack, BodyPart part, float distalOverlap, IPartDrawer& drawer) const;
+	// Overlap at the joint between `part` and `child`: half the thickness of
+	// the thinner of the two, so the overlap never pokes out of the child.
+	float jointOverlap(BodyPart part, BodyPart child) const;
 	float boneLength(BodyPart part) const;	// 0 for a hidden bonus part
 
 	BodyDimensions dimensions_;

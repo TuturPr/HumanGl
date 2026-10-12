@@ -69,8 +69,8 @@ void HumanModel::draw(MatrixStack& stack, const Pose& pose, IPartDrawer& drawer)
 	stack.push();
 	stack.translate(pose.rootOffset);
 	stack.rotateY(pose.rootYaw);
-	stack.rotateX(pose.rootPitch);
 	stack.rotateZ(-pose.rootRoll);
+	stack.rotateX(pose.rootPitch);
 
 	stack.push();
 	stack.translate({0.0f, -torso.y / 2.0f, 0.0f});
@@ -96,12 +96,20 @@ void HumanModel::drawPart(MatrixStack& stack, BodyPart part, IPartDrawer& drawer
 	stack.pop();
 }
 
-void HumanModel::drawSegment(MatrixStack& stack, BodyPart part, bool extendDistal, IPartDrawer& drawer) const
+float HumanModel::jointOverlap(BodyPart part, BodyPart child) const
+{
+	const Vec3& childSize = dimensions_.size(child);
+	const float own = thickness(dimensions_.size(part));
+	if (!isVisible(child))
+		return own / 2.0f;	// free end: just round it off
+	return std::min({own, childSize.x, childSize.y, childSize.z}) / 2.0f;
+}
+
+void HumanModel::drawSegment(MatrixStack& stack, BodyPart part, float distalOverlap, IPartDrawer& drawer) const
 {
 	const Vec3& size = dimensions_.size(part);
-	const float overlap = thickness(size) / 2.0f;
-	const float top = overlap;
-	const float bottom = -size.y - (extendDistal ? overlap : 0.0f);
+	const float top = thickness(size) / 2.0f;
+	const float bottom = -size.y - distalOverlap;
 
 	if (!isVisible(part))
 		return;
@@ -123,7 +131,7 @@ void HumanModel::drawHead(MatrixStack& stack, const Pose& pose, IPartDrawer& dra
 
 	stack.push();
 	stack.rotateZ(180.0f);	// the neck segment grows upward
-	drawSegment(stack, BodyPart::Neck, true, drawer);
+	drawSegment(stack, BodyPart::Neck, jointOverlap(BodyPart::Neck, BodyPart::Head), drawer);
 	stack.pop();
 
 	stack.translate({0.0f, boneLength(BodyPart::Neck) + head.y / 2.0f, 0.0f});
@@ -142,17 +150,17 @@ void HumanModel::drawArm(MatrixStack& stack, Side side, const ArmPose& arm, IPar
 	stack.translate({sideSign(side) * (torsoWidth + armWidth) / 2.0f, -armWidth / 2.0f, 0.0f});
 	stack.rotateZ(sideSign(side) * arm.shoulderAbduct);
 	stack.rotateX(-arm.shoulderFlex);
-	drawSegment(stack, parts.upper, true, drawer);
+	drawSegment(stack, parts.upper, jointOverlap(parts.upper, parts.lower), drawer);
 
 	// Elbow joint.
 	stack.translate({0.0f, -boneLength(parts.upper), 0.0f});
 	stack.rotateX(-arm.elbowFlex);
-	drawSegment(stack, parts.lower, true, drawer);
+	drawSegment(stack, parts.lower, jointOverlap(parts.lower, parts.extremity), drawer);
 
 	// Wrist joint.
 	stack.translate({0.0f, -boneLength(parts.lower), 0.0f});
 	stack.rotateX(-arm.wristFlex);
-	drawSegment(stack, parts.extremity, false, drawer);
+	drawSegment(stack, parts.extremity, 0.0f, drawer);
 	stack.pop();
 }
 
@@ -168,12 +176,12 @@ void HumanModel::drawLeg(MatrixStack& stack, Side side, const LegPose& leg, IPar
 	stack.translate({sideSign(side) * (torso.x - thighWidth) / 2.0f, -torso.y, 0.0f});
 	stack.rotateZ(sideSign(side) * leg.hipAbduct);
 	stack.rotateX(-leg.hipFlex);
-	drawSegment(stack, parts.upper, true, drawer);
+	drawSegment(stack, parts.upper, jointOverlap(parts.upper, parts.lower), drawer);
 
 	// Knee joint: the shin folds backward.
 	stack.translate({0.0f, -boneLength(parts.upper), 0.0f});
 	stack.rotateX(leg.kneeFlex);
-	drawSegment(stack, parts.lower, true, drawer);
+	drawSegment(stack, parts.lower, jointOverlap(parts.lower, parts.extremity), drawer);
 
 	// Ankle joint: the foot points forward, the heel slightly behind the shin.
 	stack.translate({0.0f, -boneLength(parts.lower), 0.0f});
