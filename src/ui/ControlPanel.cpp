@@ -2,10 +2,13 @@
 
 #include <imgui.h>
 
+#include <cstddef>
+#include <string>
+
 namespace {
 
-constexpr float MIN_PART_SIZE = 0.02f;
 constexpr float MAX_PART_SIZE = 1.5f;
+constexpr ImGuiSliderFlags CLAMPED = ImGuiSliderFlags_AlwaysClamp;	// also when typing a value
 
 } // namespace
 
@@ -42,10 +45,10 @@ void ControlPanel::drawAnimationSection()
 	}
 
 	float speed = animator_.speed();
-	if (ImGui::SliderFloat("Speed", &speed, 0.0f, 3.0f, "%.2fx"))
+	if (ImGui::SliderFloat("Speed", &speed, 0.0f, 3.0f, "%.2fx", CLAMPED))
 		animator_.setSpeed(speed);
 	float transition = animator_.transitionDuration();
-	if (ImGui::SliderFloat("Blend time", &transition, 0.0f, 2.0f, "%.2f s"))
+	if (ImGui::SliderFloat("Blend time", &transition, 0.0f, 2.0f, "%.2f s", CLAMPED))
 		animator_.setTransitionDuration(transition);
 	bool paused = animator_.paused();
 	if (ImGui::Checkbox("Pause", &paused))
@@ -71,15 +74,16 @@ void ControlPanel::drawBodySection()
 		ImGui::EndCombo();
 	}
 	ImGui::Checkbox("Edit left and right together", &mirrorEdits_);
+	ImGui::SetItemTooltip("Edits are copied to the same part on the other side");
 
 	// Every edit goes to the selected part and, if asked, to its mirror.
 	const BodyPart mirror = mirrorPart(selectedPart_);
 	const bool alsoMirror = mirrorEdits_ && mirror != selectedPart_;
 
 	Vec3 size = dimensions.size(selectedPart_);
-	bool resized = ImGui::SliderFloat("Width", &size.x, MIN_PART_SIZE, MAX_PART_SIZE, "%.2f");
-	resized |= ImGui::SliderFloat("Length", &size.y, MIN_PART_SIZE, MAX_PART_SIZE, "%.2f");
-	resized |= ImGui::SliderFloat("Depth", &size.z, MIN_PART_SIZE, MAX_PART_SIZE, "%.2f");
+	bool resized = ImGui::SliderFloat("Width", &size.x, BodyDimensions::MIN_SIZE, MAX_PART_SIZE, "%.2f", CLAMPED);
+	resized |= ImGui::SliderFloat("Length", &size.y, BodyDimensions::MIN_SIZE, MAX_PART_SIZE, "%.2f", CLAMPED);
+	resized |= ImGui::SliderFloat("Depth", &size.z, BodyDimensions::MIN_SIZE, MAX_PART_SIZE, "%.2f", CLAMPED);
 	if (resized)
 	{
 		dimensions.setSize(selectedPart_, size);
