@@ -2,9 +2,19 @@
 
 #include "skeleton/Pose.hpp"
 
+#include <cmath>
 #include <vector>
 
 namespace testing_support {
+
+// Indices into channels() that tests refer to by name.
+constexpr std::size_t ROOT_YAW = 3;
+
+// Angle in degrees brought into [-180, 180).
+inline float wrap180(float degrees)
+{
+	return degrees - 360.0f * std::floor((degrees + 180.0f) / 360.0f);
+}
 
 // Every number of a pose in a fixed order, so tests can compare poses channel by channel.
 inline std::vector<float> channels(const Pose& p)

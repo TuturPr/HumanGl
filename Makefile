@@ -46,6 +46,7 @@ TEST_SRC		= tests/test_main.cpp \
 				  tests/skeleton/test_Character.cpp \
 				  tests/animation/test_KeyframeTrack.cpp tests/animation/test_Animator.cpp \
 				  tests/animation/test_Clips.cpp tests/animation/test_ThomasFlare.cpp \
+				  tests/animation/test_Dances.cpp \
 				  tests/render/test_OrbitCamera.cpp tests/render/test_PlanarShadow.cpp \
 				  tests/render/test_BodyPalette.cpp
 

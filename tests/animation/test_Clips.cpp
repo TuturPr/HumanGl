@@ -7,6 +7,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <iterator>
 
 using namespace testing_support;
 
@@ -23,7 +24,7 @@ struct ClipInfo
 };
 
 const ClipInfo CLIPS[] = {{"Idle", 7.0f}, {"Walk", 1.1f}, {"Jump", 1.9f},
-							 {"Thomas flare", 1.5f}};
+							 {"Disco", 2.0f}, {"Kung-fu", 3.6f}, {"Thomas flare", 1.5f}};
 
 // About three cycles, and never shorter than 5 seconds.
 int sampleCount(const ClipInfo& clip)
@@ -47,11 +48,12 @@ Pose sampleAt(const char* name, float t)
 
 }
 
-TEST(Clips, LibraryContainsIdleWalkJumpAndThomasFlare)
+TEST(Clips, LibraryContainsAllClipsInMenuOrder)
 {
 	const AnimationLibrary library = AnimationLibrary::createDefault();
-	EXPECT_EQ(library.size(), 4u);
-	EXPECT_EQ(library.at(3).name(), "Thomas flare");
+	EXPECT_EQ(library.size(), std::size(CLIPS));
+	for (std::size_t i = 0; i < std::size(CLIPS); ++i)
+		EXPECT_EQ(library.at(i).name(), CLIPS[i].name);
 	for (const ClipInfo& clip : CLIPS)
 		EXPECT_NE(library.find(clip.name), nullptr) << clip.name;
 }
@@ -154,7 +156,7 @@ TEST(Clips, PosesArePeriodic)
 			for (std::size_t c = 0; c < a.size(); ++c)
 			{
 				float diff = b[c] - a[c];
-				if (c == 3)	// rootYaw: a whole number of turns is the same orientation
+				if (c == ROOT_YAW)	// rootYaw: a whole number of turns is the same orientation
 					diff -= 360.0f * std::round(diff / 360.0f);
 				EXPECT_NEAR(diff, 0.0f, 0.02f) << clip.name << " " << channelName(c) << " t=" << t;
 			}
@@ -345,7 +347,7 @@ TEST(Clips, ThomasFlareIsCarriedByItsHandsNotItsFeet)
 {
 	const JointLimits limits;
 	const Character character;
-	for (int i = 0; i < sampleCount(CLIPS[3]); ++i)
+	for (int i = 0; i < sampleCount(CLIPS[5]); ++i)
 	{
 		const float t = static_cast<float>(i) * STEP;
 		const BodyPart part = lowestPart(character, limits.clamp(sampleAt("Thomas flare", t)));
