@@ -174,10 +174,10 @@ TEST(Mat4, MultiplicationIsAssociative)
 TEST(Mat4, PerspectiveMapsNearPlaneToMinusOne)
 {
 	Mat4 p = Mat4::perspective(60.0f, 1.5f, 0.1f, 100.0f);
-	Vec3 ndc = p.transformPoint(Vec3(0, 0, -0.1f));
+	Vec3 clip = p.transformPoint(Vec3(0, 0, -0.1f));
 	const float* d = p.data();
-	float w = d[3] * 0 + d[7] * 0 + d[11] * -0.1f + d[15];
-	EXPECT_NEAR(ndc.z / w, -1.0f, 1e-4f);
+	float w = d[11] * -0.1f + d[15];
+	EXPECT_NEAR(clip.z / w, -1.0f, 1e-4f);
 }
 
 TEST(Mat4, PerspectiveMapsFarPlaneToPlusOne)

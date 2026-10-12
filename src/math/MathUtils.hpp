@@ -4,8 +4,8 @@ namespace math {
 
 constexpr float PI = 3.14159265358979323846f;
 
-constexpr float radians(float degrees) { return degrees * PI / 180.0f; }
-constexpr float degrees(float radians) { return radians * 180.0f / PI; }
+constexpr float radians(float deg) { return deg * PI / 180.0f; }
+constexpr float degrees(float rad) { return rad * 180.0f / PI; }
 
 constexpr float clamp(float value, float low, float high)
 {
