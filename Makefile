@@ -26,10 +26,15 @@ CORE_SRC		= $(MATH_SRC) $(GEOMETRY_SRC) $(SKELETON_SRC) $(ANIMATION_SRC) $(CAMER
 # OpenGL / window / application.
 RENDER_SRC		= src/render/GpuMesh.cpp src/render/ShaderProgram.cpp src/render/PartDrawers.cpp \
 				  src/render/SceneRenderer.cpp
+UI_SRC			= src/ui/ImGuiLayer.cpp src/ui/ControlPanel.cpp
 APP_SRC			= src/platform/Window.cpp src/app/Application.cpp src/main.cpp
+IMGUI_DIR		= includes/imgui-1.92.6
+IMGUI_SRC		= $(IMGUI_DIR)/imgui.cpp $(IMGUI_DIR)/imgui_draw.cpp $(IMGUI_DIR)/imgui_tables.cpp \
+				  $(IMGUI_DIR)/imgui_widgets.cpp $(IMGUI_DIR)/backends/imgui_impl_glfw.cpp \
+				  $(IMGUI_DIR)/backends/imgui_impl_opengl3.cpp
 GLAD_SRC		= libs/glad.c
 
-SRC				= $(CORE_SRC) $(RENDER_SRC) $(APP_SRC)
+SRC				= $(CORE_SRC) $(RENDER_SRC) $(UI_SRC) $(APP_SRC) $(IMGUI_SRC)
 
 TEST_SRC		= tests/test_main.cpp \
 				  tests/math/test_Vec3.cpp tests/math/test_Mat4.cpp tests/math/test_MatrixStack.cpp \
