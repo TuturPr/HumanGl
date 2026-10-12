@@ -702,3 +702,82 @@ TEST(HumanModelOverlap, ThinChildLimitsTheOverlapOfAThickParent)
 	// distal overlap = min(forearm thickness, hand dims) / 2 = 0.01
 	EXPECT_NEAR(extents(d.matrix(BodyPart::ForearmLeft)).y, fore.y + std::min(fore.x, fore.z) / 2.0f + 0.01f, 1e-3f);
 }
+
+// ------------------------------------------------- single draw call, shoulders ---
+
+namespace {
+std::vector<Pose> severalPoses()
+{
+	std::vector<Pose> poses(4);
+	poses[1].rootYaw = 70.0f;
+	poses[1].leftArm = {90.0f, 20.0f, 100.0f, -40.0f};
+	poses[2].rootPitch = 80.0f;
+	poses[2].rootRoll = 25.0f;
+	poses[2].rightLeg = {80.0f, 10.0f, 120.0f, 20.0f};
+	poses[3].neckYaw = 40.0f;
+	poses[3].neckPitch = -30.0f;
+	poses[3].leftLeg = {-20.0f, 0.0f, 10.0f, -30.0f};
+	return poses;
+}
+
+float highestCornerY(const Mat4& m)
+{
+	float highest = -1e9f;
+	for (const Vec3& c : cubeCorners())
+		highest = std::max(highest, m.transformPoint(c).y);
+	return highest;
+}
+}
+
+TEST(HumanModelDrawCalls, EveryVisiblePartIsDrawnExactlyOnceForSeveralPoses)
+{
+	for (bool bonus : {true, false})
+	{
+		HumanModel model;
+		model.setBonusPartsEnabled(bonus);
+		for (const Pose& pose : severalPoses())
+		{
+			const RecordingDrawer d = drawModel(model, pose);
+			for (BodyPart part : allParts())
+				EXPECT_EQ(d.count(part), model.isVisible(part) ? 1 : 0) << bodyPartName(part) << " bonus=" << bonus;
+			EXPECT_EQ(d.calls.size(), bonus ? 15u : 10u);
+		}
+	}
+}
+
+TEST(HumanModelDrawCalls, EveryVisiblePartIsDrawnOnceAfterResizing)
+{
+	HumanModel model;
+	model.dimensions().setSize(BodyPart::Torso, {0.8f, 1.3f, 0.5f});
+	model.dimensions().setSize(BodyPart::ForearmLeft, {0.05f, 0.9f, 0.3f});
+	const RecordingDrawer d = drawModel(model, severalPoses()[1]);
+	EXPECT_EQ(d.calls.size(), 15u);
+	for (BodyPart part : allParts())
+		EXPECT_EQ(d.count(part), 1) << bodyPartName(part);
+}
+
+TEST(HumanModelShoulders, UpperArmTopIsLevelWithTorsoTop)
+{
+	const RecordingDrawer d = drawModel(HumanModel{}, Pose{});
+	for (auto arm : {BodyPart::UpperArmLeft, BodyPart::UpperArmRight})
+		EXPECT_NEAR(highestCornerY(d.matrix(arm)), highestCornerY(d.matrix(BodyPart::Torso)), EPS) << bodyPartName(arm);
+}
+
+TEST(HumanModelShoulders, UpperArmTopStaysLevelAfterResizingTheUpperArm)
+{
+	HumanModel model;
+	model.dimensions().setSize(BodyPart::UpperArmLeft, {0.3f, 0.5f, 0.2f});
+	model.dimensions().setSize(BodyPart::UpperArmRight, {0.07f, 0.5f, 0.2f});
+	const RecordingDrawer d = drawModel(model, Pose{});
+	for (auto arm : {BodyPart::UpperArmLeft, BodyPart::UpperArmRight})
+		EXPECT_NEAR(highestCornerY(d.matrix(arm)), highestCornerY(d.matrix(BodyPart::Torso)), EPS) << bodyPartName(arm);
+}
+
+TEST(HumanModelShoulders, UpperArmTopStaysLevelAfterResizingTheTorso)
+{
+	HumanModel model;
+	model.dimensions().setSize(BodyPart::Torso, {0.9f, 1.2f, 0.4f});
+	const RecordingDrawer d = drawModel(model, Pose{});
+	for (auto arm : {BodyPart::UpperArmLeft, BodyPart::UpperArmRight})
+		EXPECT_NEAR(highestCornerY(d.matrix(arm)), highestCornerY(d.matrix(BodyPart::Torso)), EPS) << bodyPartName(arm);
+}
