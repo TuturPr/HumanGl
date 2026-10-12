@@ -19,7 +19,9 @@ Application::Application(const std::string& shaderDirectory)
 	  unitShape_(makeRoundedBox(UNIT_SHAPE_ROUNDING, UNIT_SHAPE_SEGMENTS)),
 	  character_(unitShape_.positions),
 	  renderer_(shaderDirectory, unitShape_),
-	  animations_(AnimationLibrary::createDefault())
+	  animations_(AnimationLibrary::createDefault()),
+	  imgui_(window_.handle()),
+	  panel_(animations_, animator_, character_, renderer_, camera_)
 {
 	animator_.play(animations_.at(0));
 }
@@ -40,11 +42,23 @@ void Application::run()
 		int height = 0;
 		window_.framebufferSize(width, height);
 		renderer_.render(character_, animator_.pose(), camera_, width, height);
+
+		imgui_.beginFrame();
+		panel_.draw();
+		imgui_.endFrame();
 		window_.swapBuffers();
 	}
 }
 
 void Application::handleInput()
+{
+	if (!imgui_.wantsKeyboard())
+		handleKeyboard();
+	if (!imgui_.wantsMouse())
+		handleMouse();
+}
+
+void Application::handleKeyboard()
 {
 	for (int key : window_.pressedKeys())
 	{
@@ -59,7 +73,10 @@ void Application::handleInput()
 				animator_.play(animations_.at(choice));
 		}
 	}
+}
 
+void Application::handleMouse()
+{
 	if (window_.isMouseButtonDown(GLFW_MOUSE_BUTTON_LEFT))
 	{
 		double dx = 0.0;
