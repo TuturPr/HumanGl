@@ -10,5 +10,6 @@ Work log used to resume the project at any time.
 | ImGui panel: live limb sizes, colours, animation switching | #3 | merged |
 | Bonus moves: disco, kung-fu | #5 | merged |
 | Bonus move: Thomas flare | #4 | merged |
-| Documentation (README, design decisions) | docs/decisions | in review |
-| Final verification + PDF report | — | todo |
+| Documentation (README, design decisions) | #6 | merged |
+| Final verification (subject + 375 tests) | — | passed |
+| PDF report of all changes (docs/RAPPORT_MODIFICATIONS.pdf) | docs/report | done |
