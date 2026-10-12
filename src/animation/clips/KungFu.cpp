@@ -5,7 +5,7 @@ namespace clips {
 namespace {
 
 ArmPose guard() { return {45.0f, 12.0f, 115.0f, 0.0f}; }		// fists up in front of the chest
-ArmPose punch() { return {88.0f, -12.0f, 0.0f, 0.0f}; }		// straight punch at shoulder height
+ArmPose punch() { return {88.0f, -12.0f, 5.0f, 0.0f}; }		// punch at shoulder height, elbow not locked
 ArmPose chamber() { return {-25.0f, 10.0f, 125.0f, 0.0f}; }	// fist pulled back to the ribs
 
 LegPose horse() { return {55.0f, 32.0f, 75.0f, 22.0f}; }		// wide, low horse stance
