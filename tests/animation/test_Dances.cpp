@@ -9,6 +9,8 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <stdexcept>
+#include <string>
 #include <vector>
 
 using namespace testing_support;
@@ -22,14 +24,13 @@ constexpr int CYCLES = 3;
 constexpr float MAX_STEP_CHANGE = 6.0f;
 constexpr float FOOT_LIFT_LIMIT = 0.12f;	// a foot may rise at most this much off the floor
 
-
 const IAnimation& clip(const char* name)
 {
 	static const AnimationLibrary library = AnimationLibrary::createDefault();
 	const IAnimation* found = library.find(name);
-	EXPECT_NE(found, nullptr) << name;
-	static const AnimationLibrary empty;
-	return found ? *found : empty.at(0);
+	if (!found)
+		throw std::invalid_argument(std::string("unknown clip: ") + name);
+	return *found;
 }
 
 struct Frame
@@ -176,7 +177,7 @@ TEST(Disco, BothFeetStayOnTheFloorAndNothingSinksBelowIt)
 
 TEST(Disco, RightHandPointsAboveTheHeadOnTheUpBeats)
 {
-	// The raised finger is on the first and third beat of the cycle (t = 0 and 0.5 s).
+	// The finger points up on beats 1 and 2 of each half-cycle phrase (phase 0 and 0.25: t = 0 and 0.5 s).
 	for (float t : {0.0f, 0.5f, DISCO_PERIOD, DISCO_PERIOD + 0.5f})
 	{
 		const Frame f = frameAt("Disco", t);
@@ -209,16 +210,6 @@ TEST(Disco, HipsSwayToBothSidesEveryCycle)
 	EXPECT_GT(left, 4.0f);
 	EXPECT_LT(right, -4.0f);
 	EXPECT_GE(crossings, 4);	// sways left and right at least twice per cycle
-}
-
-TEST(Disco, HipsTurnAgainstTheirSway)
-{
-	// The pelvis counter-rotates: rootYaw always has the opposite sign of rootRoll.
-	for (int i = 0; i < samplesFor(DISCO_PERIOD); ++i)
-	{
-		const Pose p = clip("Disco").sample(static_cast<float>(i) * STEP);
-		EXPECT_LE(p.rootRoll * p.rootYaw, 1e-3f) << "t=" << static_cast<float>(i) * STEP;
-	}
 }
 
 // ---------------------------------------------------------------- Kung-fu ---

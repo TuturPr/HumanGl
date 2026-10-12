@@ -7,6 +7,8 @@
 
 #include <algorithm>
 #include <cmath>
+#include <string>
+#include <stdexcept>
 #include <iterator>
 
 using namespace testing_support;
@@ -25,6 +27,14 @@ struct ClipInfo
 
 const ClipInfo CLIPS[] = {{"Idle", 7.0f}, {"Walk", 1.1f}, {"Jump", 1.9f},
 							 {"Disco", 2.0f}, {"Kung-fu", 3.6f}, {"Thomas flare", 1.5f}};
+
+const ClipInfo& clipInfo(const char* name)
+{
+	for (const ClipInfo& clip : CLIPS)
+		if (std::string(clip.name) == name)
+			return clip;
+	throw std::invalid_argument(std::string("unknown clip: ") + name);
+}
 
 // About three cycles, and never shorter than 5 seconds.
 int sampleCount(const ClipInfo& clip)
@@ -182,20 +192,20 @@ TEST(Clips, JumpStartsOnTheGround)
 TEST(Clips, JumpLeavesTheGroundByMoreThanThirtyCentimetres)
 {
 	float highest = 0.0f;
-	for (int i = 0; i < sampleCount(CLIPS[2]); ++i)
+	for (int i = 0; i < sampleCount(clipInfo("Jump")); ++i)
 		highest = std::max(highest, sampleAt("Jump", static_cast<float>(i) * STEP).rootOffset.y);
 	EXPECT_GT(highest, 0.3f);
 }
 
 TEST(Clips, JumpHeightIsNeverNegative)
 {
-	for (int i = 0; i < sampleCount(CLIPS[2]); ++i)
+	for (int i = 0; i < sampleCount(clipInfo("Jump")); ++i)
 		EXPECT_GE(sampleAt("Jump", static_cast<float>(i) * STEP).rootOffset.y, 0.0f);
 }
 
 TEST(Clips, JumpStaysInPlaceHorizontally)
 {
-	for (int i = 0; i < sampleCount(CLIPS[2]); ++i)
+	for (int i = 0; i < sampleCount(clipInfo("Jump")); ++i)
 	{
 		const Pose p = sampleAt("Jump", static_cast<float>(i) * STEP);
 		EXPECT_FLOAT_EQ(p.rootOffset.x, 0.0f);
@@ -212,7 +222,7 @@ TEST(Clips, WalkAndIdleDoNotLiftTheRoot)
 
 TEST(Clips, WalkLegsAreHalfACycleApart)
 {
-	const float period = CLIPS[1].period;
+	const float period = clipInfo("Walk").period;
 	for (float t : {0.0f, 0.1f, 0.35f, 0.6f, 0.9f})
 	{
 		const Pose a = sampleAt("Walk", t);
@@ -226,7 +236,7 @@ TEST(Clips, WalkLegsAreHalfACycleApart)
 TEST(Clips, WalkLegHipsAreNegativelyCorrelated)
 {
 	double meanL = 0.0, meanR = 0.0;
-	const int n = sampleCount(CLIPS[1]);
+	const int n = sampleCount(clipInfo("Walk"));
 	for (int i = 0; i < n; ++i)
 	{
 		const Pose p = sampleAt("Walk", static_cast<float>(i) * STEP);
@@ -246,7 +256,7 @@ TEST(Clips, WalkLegHipsAreNegativelyCorrelated)
 
 TEST(Clips, WalkSwingsEachArmOppositeToTheLegOnItsSide)
 {
-	const int n = sampleCount(CLIPS[1]);
+	const int n = sampleCount(clipInfo("Walk"));
 	for (bool left : {true, false})
 	{
 		double meanLeg = 0.0, meanArm = 0.0;
@@ -293,7 +303,7 @@ TEST(Clips, WalkMovesTheLegsAMeaningfulAmount)
 
 TEST(Clips, IdleMovesOnlySlightly)
 {
-	for (int i = 0; i < sampleCount(CLIPS[0]); i += 10)
+	for (int i = 0; i < sampleCount(clipInfo("Idle")); i += 10)
 	{
 		const Pose p = sampleAt("Idle", static_cast<float>(i) * STEP);
 		EXPECT_LT(std::abs(p.rootRoll), 5.0f);
@@ -347,7 +357,7 @@ TEST(Clips, ThomasFlareIsCarriedByItsHandsNotItsFeet)
 {
 	const JointLimits limits;
 	const Character character;
-	for (int i = 0; i < sampleCount(CLIPS[5]); ++i)
+	for (int i = 0; i < sampleCount(clipInfo("Thomas flare")); ++i)
 	{
 		const float t = static_cast<float>(i) * STEP;
 		const BodyPart part = lowestPart(character, limits.clamp(sampleAt("Thomas flare", t)));
@@ -359,7 +369,7 @@ TEST(Clips, ThomasFlareIsCarriedByItsHandsNotItsFeet)
 TEST(Clips, JumpFlightIsContinuousInHeight)
 {
 	float previous = sampleAt("Jump", 0.0f).rootOffset.y;
-	for (int i = 1; i < sampleCount(CLIPS[2]); ++i)
+	for (int i = 1; i < sampleCount(clipInfo("Jump")); ++i)
 	{
 		const float y = sampleAt("Jump", static_cast<float>(i) * STEP).rootOffset.y;
 		EXPECT_LT(std::abs(y - previous), 0.03f) << i;
