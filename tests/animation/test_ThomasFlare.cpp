@@ -99,11 +99,6 @@ bool isHand(BodyPart p)
 	return p == BodyPart::HandLeft || p == BodyPart::HandRight;
 }
 
-float wrap180(float degrees)
-{
-	return degrees - 360.0f * std::floor((degrees + 180.0f) / 360.0f);
-}
-
 }
 
 TEST(ThomasFlare, RawPoseIsAlwaysWithinJointLimits)
@@ -224,7 +219,7 @@ TEST(ThomasFlare, MotionIsSmoothBetweenConsecutiveSamples)
 		const std::vector<float> b = channels(frames()[i].pose);
 		for (std::size_t c = 0; c < a.size(); ++c)
 		{
-			if (c == 3)	// rootYaw
+			if (c == ROOT_YAW)	// rootYaw
 				continue;
 			EXPECT_LE(std::abs(b[c] - a[c]), 6.0f)
 				<< channelName(c) << " changes by " << std::abs(b[c] - a[c]) << " at t=" << frames()[i].t;
@@ -240,8 +235,8 @@ TEST(ThomasFlare, LoopsAfterOneRevolution)
 		const std::vector<float> b = channels(rawPose(i + SAMPLES_PER_REVOLUTION));
 		for (std::size_t c = 0; c < a.size(); ++c)
 		{
-			const float diff = c == 3 ? wrap180(b[c] - a[c]) : b[c] - a[c];
-			EXPECT_NEAR(diff, 0.0f, c == 3 ? 0.5f : 0.05f)
+			const float diff = c == ROOT_YAW ? wrap180(b[c] - a[c]) : b[c] - a[c];
+			EXPECT_NEAR(diff, 0.0f, c == ROOT_YAW ? 0.5f : 0.05f)
 				<< channelName(c) << " at t=" << static_cast<float>(i) * STEP;
 		}
 	}
