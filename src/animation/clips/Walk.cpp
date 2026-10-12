@@ -24,8 +24,8 @@ public:
 		Pose pose;
 		pose.leftLeg  = gait_.sample(phase);
 		pose.rightLeg = gait_.sample(phase + 0.5f);
-		pose.leftArm  = armSwing_.sample(phase + 0.5f);
-		pose.rightArm = armSwing_.sample(phase);
+		pose.leftArm  = armSwing_.sample(phase);
+		pose.rightArm = armSwing_.sample(phase + 0.5f);
 
 		pose.rootPitch = 4.0f;		// slight forward lean
 		pose.rootYaw   = 4.0f * wave;	// shoulders turn with the swinging arm
