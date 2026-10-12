@@ -10,5 +10,6 @@ namespace clips {
 std::unique_ptr<IAnimation> createIdle();
 std::unique_ptr<IAnimation> createWalk();
 std::unique_ptr<IAnimation> createJump();
+std::unique_ptr<IAnimation> createThomasFlare();
 
 } // namespace clips
