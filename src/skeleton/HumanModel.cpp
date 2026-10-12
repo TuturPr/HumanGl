@@ -74,7 +74,7 @@ void HumanModel::draw(MatrixStack& stack, const Pose& pose, IPartDrawer& drawer)
 
 	stack.push();
 	stack.translate({0.0f, -torso.y / 2.0f, 0.0f});
-	drawPart(stack, BodyPart::Torso, drawer);
+	drawPart(stack, BodyPart::Torso, torso, drawer);
 	stack.pop();
 
 	drawHead(stack, pose, drawer);
@@ -86,12 +86,12 @@ void HumanModel::draw(MatrixStack& stack, const Pose& pose, IPartDrawer& drawer)
 	stack.pop();
 }
 
-void HumanModel::drawPart(MatrixStack& stack, BodyPart part, IPartDrawer& drawer) const
+void HumanModel::drawPart(MatrixStack& stack, BodyPart part, const Vec3& extent, IPartDrawer& drawer) const
 {
 	if (!isVisible(part))
 		return;
 	stack.push();
-	stack.scale(dimensions_.size(part));
+	stack.scale(extent);
 	drawer.drawUnitShape(part, stack.top());
 	stack.pop();
 }
@@ -111,12 +111,9 @@ void HumanModel::drawSegment(MatrixStack& stack, BodyPart part, float distalOver
 	const float top = thickness(size) / 2.0f;
 	const float bottom = -size.y - distalOverlap;
 
-	if (!isVisible(part))
-		return;
 	stack.push();
 	stack.translate({0.0f, (top + bottom) / 2.0f, 0.0f});
-	stack.scale({size.x, top - bottom, size.z});
-	drawer.drawUnitShape(part, stack.top());
+	drawPart(stack, part, {size.x, top - bottom, size.z}, drawer);
 	stack.pop();
 }
 
@@ -135,7 +132,7 @@ void HumanModel::drawHead(MatrixStack& stack, const Pose& pose, IPartDrawer& dra
 	stack.pop();
 
 	stack.translate({0.0f, boneLength(BodyPart::Neck) + head.y / 2.0f, 0.0f});
-	drawPart(stack, BodyPart::Head, drawer);
+	drawPart(stack, BodyPart::Head, head, drawer);
 	stack.pop();
 }
 
@@ -143,11 +140,13 @@ void HumanModel::drawArm(MatrixStack& stack, Side side, const ArmPose& arm, IPar
 {
 	const LimbParts parts = armParts(side);
 	const float torsoWidth = dimensions_.size(BodyPart::Torso).x;
-	const float armWidth = dimensions_.size(parts.upper).x;
+	const Vec3& upperArm = dimensions_.size(parts.upper);
 
 	stack.push();
-	// Shoulder joint, just outside the top corner of the torso.
-	stack.translate({sideSign(side) * (torsoWidth + armWidth) / 2.0f, -armWidth / 2.0f, 0.0f});
+	// Shoulder joint, just outside the top corner of the torso; the rounded
+	// top of the upper arm (half its thickness above the joint) is level with
+	// the top of the torso.
+	stack.translate({sideSign(side) * (torsoWidth + upperArm.x) / 2.0f, -thickness(upperArm) / 2.0f, 0.0f});
 	stack.rotateZ(sideSign(side) * arm.shoulderAbduct);
 	stack.rotateX(-arm.shoulderFlex);
 	drawSegment(stack, parts.upper, jointOverlap(parts.upper, parts.lower), drawer);
@@ -187,6 +186,6 @@ void HumanModel::drawLeg(MatrixStack& stack, Side side, const LegPose& leg, IPar
 	stack.translate({0.0f, -boneLength(parts.lower), 0.0f});
 	stack.rotateX(-leg.ankleFlex);
 	stack.translate({0.0f, -foot.y / 2.0f, foot.z * 0.3f});
-	drawPart(stack, parts.extremity, drawer);
+	drawPart(stack, parts.extremity, foot, drawer);
 	stack.pop();
 }
