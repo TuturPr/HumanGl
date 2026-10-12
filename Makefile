@@ -1,75 +1,71 @@
-NAME = humangl
+NAME		= humangl
+TEST_NAME	= tests/run_tests
 
-INCLUDE = includes
-LIBS = -Iinclude -ldl -lglfw -pthread -lm
+CXX			= c++
+CC			= cc
+CXXFLAGS	= -Wall -Wextra -Werror -std=c++17 -O2 -MMD -MP
+CFLAGS		= -Wall -Wextra -Werror -O2
+INCLUDES	= -I src -I includes -I includes/imgui-1.92.6 -I includes/imgui-1.92.6/backends
+DEFINES		= -D SHADER_DIR=\"$(CURDIR)/src/shaders/\"
+LDLIBS		= -lglfw -ldl -pthread -lm
 
-CC = cc
-CXX = c++
+BUILD		= .tmp
 
-CFLAGS = -Wall -Wextra -Werror -I $(INCLUDE) -I ./src -I ./includes -I ./includes/glm -I ./includes/imgui-1.92.6 -I ./includes/imgui-1.92.6/backends -O3
-CXXFLAGS = -Wall -Wextra -Werror -I $(INCLUDE) -I ./src -I ./includes -I ./includes/glm -I ./includes/imgui-1.92.6 -I ./includes/imgui-1.92.6/backends -O3 -std=c++17
+# ---------------------------------------------------------------- sources ---
 
-GREEN = \033[1;38;2;0;255;0m
-RED = \033[1;38;2;255;0;0m
-DEF_COLOR = \033[0m
+# Modules without any OpenGL dependency (also linked into the unit tests).
+MATH_SRC		= src/math/Mat4.cpp src/math/MatrixStack.cpp
+GEOMETRY_SRC	= src/geometry/RoundedBox.cpp
+SKELETON_SRC	= src/skeleton/BodyPart.cpp src/skeleton/BodyDimensions.cpp src/skeleton/Pose.cpp \
+				  src/skeleton/JointLimits.cpp src/skeleton/HumanModel.cpp src/skeleton/Character.cpp
+ANIMATION_SRC	= src/animation/Animator.cpp src/animation/AnimationLibrary.cpp \
+				  src/animation/clips/Idle.cpp src/animation/clips/Walk.cpp src/animation/clips/Jump.cpp
+CAMERA_SRC		= src/render/OrbitCamera.cpp src/render/PlanarShadow.cpp src/render/BodyPalette.cpp
+CORE_SRC		= $(MATH_SRC) $(GEOMETRY_SRC) $(SKELETON_SRC) $(ANIMATION_SRC) $(CAMERA_SRC)
 
-# Sources
+# OpenGL / window / application.
+RENDER_SRC		= src/render/GpuMesh.cpp src/render/ShaderProgram.cpp src/render/PartDrawers.cpp \
+				  src/render/SceneRenderer.cpp
+APP_SRC			= src/platform/Window.cpp src/app/Application.cpp src/main.cpp
+GLAD_SRC		= libs/glad.c
 
-include Sources.mk
+SRC				= $(CORE_SRC) $(RENDER_SRC) $(APP_SRC)
 
-SRC_DIR = ./src
-GLAD_SRC = libs/glad.c
+TEST_SRC		= tests/test_main.cpp \
+				  tests/math/test_Vec3.cpp tests/math/test_Mat4.cpp tests/math/test_MatrixStack.cpp
 
-SRC_CPP = $(SRC_MAIN)
-SRC_C = $(GLAD_SRC)
-SRC = $(SRC_CPP) $(SRC_C)
+OBJ				= $(SRC:%.cpp=$(BUILD)/%.o) $(GLAD_SRC:%.c=$(BUILD)/%.o)
+TEST_OBJ		= $(CORE_SRC:%.cpp=$(BUILD)/%.o) $(TEST_SRC:%.cpp=$(BUILD)/%.o)
 
-TMP = .tmp
-OBJS = $(patsubst %.cpp, $(TMP)/%.o, $(SRC_CPP)) $(patsubst %.c, $(TMP)/%.o, $(SRC_C))
-
-# Fonctions
+# ------------------------------------------------------------------ rules ---
 
 all: $(NAME)
-	@printf "%b\n" "$(GREEN)Compilation successful !$(DEF_COLOR)"
 
-$(NAME): $(OBJS)
-	@$(CXX) $(CXXFLAGS) $(OBJS) $(LIBS) -o $(NAME) || \
-		(printf "%b\n" "$(RED)Error during linking!$(DEF_COLOR)" && exit 1)
+$(NAME): $(OBJ)
+	$(CXX) $(CXXFLAGS) $(OBJ) $(LDLIBS) -o $@
 
-# Generic compilation rules
-$(TMP)/%.o: %.cpp
+$(BUILD)/%.o: %.cpp
 	@mkdir -p $(dir $@)
-	@$(CXX) $(CXXFLAGS) -c $< -o $@ || (printf "%b\n" "$(RED)Error compiling $<!$(DEF_COLOR)" && exit 1)
+	$(CXX) $(CXXFLAGS) $(INCLUDES) $(DEFINES) -c $< -o $@
 
-$(TMP)/./%.o: ./%.cpp
+$(BUILD)/%.o: %.c
 	@mkdir -p $(dir $@)
-	@$(CXX) $(CXXFLAGS) -c $< -o $@ || (printf "%b\n" "$(RED)Error compiling $<!$(DEF_COLOR)" && exit 1)
+	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
-$(TMP)/%.o: %.c
-	@mkdir -p $(dir $@)
-	@$(CC) $(CFLAGS) -c $< -o $@ || (printf "%b\n" "$(RED)Error compiling $<!$(DEF_COLOR)" && exit 1)
+test: $(TEST_NAME)
+	./$(TEST_NAME)
+
+$(TEST_NAME): $(TEST_OBJ)
+	$(CXX) $(CXXFLAGS) $(TEST_OBJ) -lgtest -pthread -o $@
 
 clean:
-	@rm -rf $(TMP)
-	@printf "%b\n" "$(GREEN)Clean successful !$(DEF_COLOR)"
+	rm -rf $(BUILD)
 
 fclean: clean
-	@rm -f $(NAME) $(TEST_NAME)
-	@rm -rf $(MLX)/build
-	@printf "%b\n" "$(GREEN)Full clean successful !$(DEF_COLOR)"
+	rm -f $(NAME) $(TEST_NAME)
 
 re: fclean all
 
-# Unit tests (GoogleTest) — only GL-free modules are linked here
-TEST_NAME = tests/run_tests
-TEST_LIB_SRC = ./src/math/Mat4.cpp ./src/math/MatrixStack.cpp
-TEST_SRC = ./tests/test_main.cpp ./tests/math/test_Vec3.cpp ./tests/math/test_Mat4.cpp ./tests/math/test_MatrixStack.cpp
-TEST_OBJS = $(patsubst %.cpp, $(TMP)/%.o, $(TEST_LIB_SRC) $(TEST_SRC))
+-include $(OBJ:.o=.d) $(TEST_OBJ:.o=.d)
 
-test: $(TEST_NAME)
-	@./$(TEST_NAME)
-
-$(TEST_NAME): $(TEST_OBJS)
-	@$(CXX) $(CXXFLAGS) $(TEST_OBJS) -lgtest -pthread -o $(TEST_NAME)
-
-.PHONY: all clean fclean re test
+.PHONY: all test clean fclean re
