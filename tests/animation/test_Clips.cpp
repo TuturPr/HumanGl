@@ -22,7 +22,8 @@ struct ClipInfo
 	float period;	// seconds for one full cycle
 };
 
-const ClipInfo CLIPS[] = {{"Idle", 7.0f}, {"Walk", 1.1f}, {"Jump", 1.9f}};
+const ClipInfo CLIPS[] = {{"Idle", 7.0f}, {"Walk", 1.1f}, {"Jump", 1.9f},
+							 {"Thomas flare", 1.5f}};
 
 // About three cycles, and never shorter than 5 seconds.
 int sampleCount(const ClipInfo& clip)
@@ -46,10 +47,11 @@ Pose sampleAt(const char* name, float t)
 
 }
 
-TEST(Clips, LibraryContainsIdleWalkAndJump)
+TEST(Clips, LibraryContainsIdleWalkJumpAndThomasFlare)
 {
 	const AnimationLibrary library = AnimationLibrary::createDefault();
-	EXPECT_EQ(library.size(), 3u);
+	EXPECT_EQ(library.size(), 4u);
+	EXPECT_EQ(library.at(3).name(), "Thomas flare");
 	for (const ClipInfo& clip : CLIPS)
 		EXPECT_NE(library.find(clip.name), nullptr) << clip.name;
 }
@@ -150,7 +152,12 @@ TEST(Clips, PosesArePeriodic)
 			const std::vector<float> a = channels(sampleAt(clip.name, t));
 			const std::vector<float> b = channels(sampleAt(clip.name, t + clip.period));
 			for (std::size_t c = 0; c < a.size(); ++c)
-				EXPECT_NEAR(a[c], b[c], 0.02f) << clip.name << " " << channelName(c) << " t=" << t;
+			{
+				float diff = b[c] - a[c];
+				if (c == 3)	// rootYaw: a whole number of turns is the same orientation
+					diff -= 360.0f * std::round(diff / 360.0f);
+				EXPECT_NEAR(diff, 0.0f, 0.02f) << clip.name << " " << channelName(c) << " t=" << t;
+			}
 		}
 }
 
@@ -292,6 +299,31 @@ TEST(Clips, IdleMovesOnlySlightly)
 	}
 }
 
+namespace {
+
+// Part whose lowest cube corner is the lowest of the whole drawn body.
+BodyPart lowestPart(const Character& character, const Pose& pose)
+{
+	MatrixStack stack;
+	RecordingDrawer drawer;
+	character.draw(stack, pose, drawer);
+	BodyPart best = BodyPart::Torso;
+	float lowest = 1e9f;
+	for (const RecordingDrawer::Call& call : drawer.calls)
+		for (const Vec3& corner : cubeCorners())
+		{
+			const float y = call.matrix.transformPoint(corner).y;
+			if (y < lowest)
+			{
+				lowest = y;
+				best = call.part;
+			}
+		}
+	return best;
+}
+
+}
+
 TEST(Clips, LowestPointIsOnTheFloorExceptDuringJumpFlight)
 {
 	const JointLimits limits;
@@ -307,6 +339,19 @@ TEST(Clips, LowestPointIsOnTheFloorExceptDuringJumpFlight)
 			else
 				EXPECT_NEAR(lowest, pose.rootOffset.y, 1e-3f) << clip.name << " t=" << t;
 		}
+}
+
+TEST(Clips, ThomasFlareIsCarriedByItsHandsNotItsFeet)
+{
+	const JointLimits limits;
+	const Character character;
+	for (int i = 0; i < sampleCount(CLIPS[3]); ++i)
+	{
+		const float t = static_cast<float>(i) * STEP;
+		const BodyPart part = lowestPart(character, limits.clamp(sampleAt("Thomas flare", t)));
+		EXPECT_TRUE(part == BodyPart::HandLeft || part == BodyPart::HandRight)
+			<< "lowest part is " << bodyPartName(part) << " at t=" << t;
+	}
 }
 
 TEST(Clips, JumpFlightIsContinuousInHeight)

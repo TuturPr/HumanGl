@@ -147,8 +147,11 @@ void HumanModel::drawArm(MatrixStack& stack, Side side, const ArmPose& arm, IPar
 	// top of the upper arm (half its thickness above the joint) is level with
 	// the top of the torso.
 	stack.translate({sideSign(side) * (torsoWidth + upperArm.x) / 2.0f, -thickness(upperArm) / 2.0f, 0.0f});
-	stack.rotateZ(sideSign(side) * arm.shoulderAbduct);
+	// Flexion is applied after abduction in the bone's frame: the abducted arm
+	// is then swung forward, so abduction keeps moving the hand sideways even
+	// when the arm is raised in front (a hand placed under the chest).
 	stack.rotateX(-arm.shoulderFlex);
+	stack.rotateZ(sideSign(side) * arm.shoulderAbduct);
 	drawSegment(stack, parts.upper, jointOverlap(parts.upper, parts.lower), drawer);
 
 	// Elbow joint.
@@ -173,8 +176,9 @@ void HumanModel::drawLeg(MatrixStack& stack, Side side, const LegPose& leg, IPar
 	stack.push();
 	// Hip joint, under the bottom corner of the torso.
 	stack.translate({sideSign(side) * (torso.x - thighWidth) / 2.0f, -torso.y, 0.0f});
-	stack.rotateZ(sideSign(side) * leg.hipAbduct);
+	// Same order as the shoulder: the straddle opens the leg, flexion swings it.
 	stack.rotateX(-leg.hipFlex);
+	stack.rotateZ(sideSign(side) * leg.hipAbduct);
 	drawSegment(stack, parts.upper, jointOverlap(parts.upper, parts.lower), drawer);
 
 	// Knee joint: the shin folds backward.
