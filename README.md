@@ -47,9 +47,17 @@ Le panneau **ImGui** permet de tout changer pendant l'exécution :
   dessine une forme 1x1x1 à l'origine de la matrice courante, mise à l'échelle
   dans son propre `push` / `pop`.
 - **Pile de matrices** : `src/math/MatrixStack.{hpp,cpp}`.
-- **Hiérarchie** : le torse est la racine ; le cou et la tête, les bras
-  (avant-bras, main) et les jambes (jambe, pied) en dépendent. Voir l'en-tête de
-  `src/skeleton/HumanModel.hpp`.
+- **Appels de la fonction de dessin** : un par partie. Le torse est dessiné dans
+  `HumanModel::draw`, le cou et la tête dans `drawHead`, les membres dans
+  `drawArm` et `drawLeg` (via `drawSegment`).
+- **Hiérarchie** : le torse est la racine ; le cou et la tête, les bras (bras,
+  avant-bras, main) et les jambes (cuisse, jambe, pied) en dépendent. Voir
+  l'en-tête de `src/skeleton/HumanModel.hpp`.
+- **Pile de matrices en bref** : chaque membre est dessiné entre un `push` et un
+  `pop`, si bien qu'un enfant hérite des transformations de son parent mais pas
+  l'inverse. Les transformations sont post-multipliées, donc le code se lit du
+  parent vers l'enfant. L'échelle d'une partie n'est appliquée qu'à l'intérieur
+  de `drawPart`, elle ne se propage jamais aux enfants.
 - **Tailles des membres** : à l'exécution via le panneau ImGui, ou dans le code
   dans `src/skeleton/BodyDimensions.cpp` (une ligne par partie).
 
