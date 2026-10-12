@@ -49,7 +49,7 @@ public:
 	}
 
 private:
-	static constexpr float CYCLE_SECONDS = 1.15f;	// one revolution
+	static constexpr float CYCLE_SECONDS = 1.5f;	// one revolution
 	static constexpr float BODY_PITCH = 95.0f;		// hips slightly above the shoulders
 	static constexpr float BODY_ROLL = 15.0f;
 	static constexpr float STRADDLE = 72.0f;
@@ -58,9 +58,9 @@ private:
 	static constexpr float POINTED_TOES = -40.0f;
 
 	// Arm timing. `support` goes from -1 (fully free) to 1 (fully carrying).
-	static constexpr float DOUBLE_SUPPORT = 0.4f;	// how early the free hand comes back
-	static constexpr float RETURN_LEAD = 0.4f;		// it is under the chest before it reaches down
-	static constexpr float BLEND_SHARPNESS = 3.0f;
+	static constexpr float DOUBLE_SUPPORT = 0.6f;	// how early the free hand comes back
+	static constexpr float RETURN_LEAD = 0.6f;		// it is under the chest before it reaches down
+	static constexpr float BLEND_SHARPNESS = 1.2f;
 
 	static ArmPose arm(float support)
 	{
