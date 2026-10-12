@@ -20,7 +20,8 @@ SKELETON_SRC	= src/skeleton/BodyPart.cpp src/skeleton/BodyDimensions.cpp src/ske
 				  src/skeleton/JointLimits.cpp src/skeleton/HumanModel.cpp src/skeleton/Character.cpp
 ANIMATION_SRC	= src/animation/Animator.cpp src/animation/AnimationLibrary.cpp \
 				  src/animation/clips/Idle.cpp src/animation/clips/Walk.cpp src/animation/clips/Jump.cpp \
-				  src/animation/clips/ThomasFlare.cpp
+				  src/animation/clips/ThomasFlare.cpp src/animation/clips/Disco.cpp \
+				  src/animation/clips/KungFu.cpp
 CAMERA_SRC		= src/render/OrbitCamera.cpp src/render/PlanarShadow.cpp src/render/BodyPalette.cpp
 CORE_SRC		= $(MATH_SRC) $(GEOMETRY_SRC) $(SKELETON_SRC) $(ANIMATION_SRC) $(CAMERA_SRC)
 
@@ -45,6 +46,7 @@ TEST_SRC		= tests/test_main.cpp \
 				  tests/skeleton/test_Character.cpp \
 				  tests/animation/test_KeyframeTrack.cpp tests/animation/test_Animator.cpp \
 				  tests/animation/test_Clips.cpp tests/animation/test_ThomasFlare.cpp \
+				  tests/animation/test_Dances.cpp \
 				  tests/render/test_OrbitCamera.cpp tests/render/test_PlanarShadow.cpp \
 				  tests/render/test_BodyPalette.cpp
 
