@@ -54,10 +54,22 @@ clean:
 	@printf "%b\n" "$(GREEN)Clean successful !$(DEF_COLOR)"
 
 fclean: clean
-	@rm -f $(NAME)
+	@rm -f $(NAME) $(TEST_NAME)
 	@rm -rf $(MLX)/build
 	@printf "%b\n" "$(GREEN)Full clean successful !$(DEF_COLOR)"
 
 re: fclean all
 
-.PHONY: all clean fclean re
+# Unit tests (GoogleTest) — only GL-free modules are linked here
+TEST_NAME = tests/run_tests
+TEST_LIB_SRC = ./src/math/Mat4.cpp ./src/math/MatrixStack.cpp
+TEST_SRC = ./tests/test_main.cpp ./tests/math/test_Vec3.cpp ./tests/math/test_Mat4.cpp ./tests/math/test_MatrixStack.cpp
+TEST_OBJS = $(patsubst %.cpp, $(TMP)/%.o, $(TEST_LIB_SRC) $(TEST_SRC))
+
+test: $(TEST_NAME)
+	@./$(TEST_NAME)
+
+$(TEST_NAME): $(TEST_OBJS)
+	@$(CXX) $(CXXFLAGS) $(TEST_OBJS) -lgtest -pthread -o $(TEST_NAME)
+
+.PHONY: all clean fclean re test
