@@ -111,10 +111,13 @@ une partie est dessinée, et elle est appelée exactement une fois par partie. E
 dessine la forme 1x1x1 à l'origine de la matrice courante, mise à l'échelle. Un
 test vérifie qu'il y a exactement un appel par partie.
 
-**Ordre des rotations aux épaules et aux hanches.** On applique l'abduction
-puis la flexion, dans le repère de l'os. Un bras écarté puis porté vers l'avant
-déplace alors la main sur le côté, comme une vraie épaule. C'était nécessaire
-pour le Thomas flare (main sous la poitrine). Des tests couvrent cet ordre.
+**Ordre des rotations aux épaules et aux hanches.** L'abduction est appliquée
+d'abord, dans le repère de l'os ; la flexion vient ensuite, autour de l'axe X du
+parent, et fait pivoter vers l'avant le membre déjà écarté. Dans le code,
+`rotateX(flexion)` précède donc `rotateZ(abduction)` (la pile post-multiplie).
+Un bras écarté puis porté vers l'avant déplace ainsi la main sur le côté, comme
+une vraie épaule ; c'était nécessaire pour le Thomas flare (main sous la
+poitrine). La suite de tests `HumanModelRotationOrder` couvre cet ordre.
 
 ---
 
@@ -150,7 +153,9 @@ flare), seules les articulations *entre deux parties* sont limitées.
 - l'`Animator` borne chaque pose produite (`JointLimits::clamp`). Une animation
   mal réglée ne peut donc jamais produire un mouvement impossible à l'écran ;
 - les tests vérifient que chaque animation reste *déjà* dans les limites sans
-  bornage, pour que le bornage ne soit qu'un filet de sécurité.
+  bornage (strictement pour Disco, Kung-fu et Thomas flare ; à 2° de
+  dépassement de spline près pour les autres), pour que le bornage ne soit
+  qu'un filet de sécurité.
 
 ---
 
@@ -192,8 +197,8 @@ flare), seules les articulations *entre deux parties* sont limitées.
   fonction de l'angle de rotation, ce qui garantit une boucle parfaite. Le corps
   est horizontal, face au sol, et porté par un bras tendu à la fois, la main
   d'appui fixée au sol. Les jambes, en grand écart, balaient des cercles. Le
-  changement de main est réglé pour qu'aucun canal ne bouge de plus de 5° par
-  image à 120 Hz.
+  changement de main est réglé pour qu'aucune articulation ne bouge de plus de
+  6° par image à 120 Hz.
   *Pourquoi procédural plutôt que des images clés ?* Le flare est un mouvement
   circulaire continu. Le décrire par l'angle de rotation est plus court, plus
   lisible et ne peut pas « décrocher » au raccord de la boucle.
