@@ -12,4 +12,4 @@ Work log used to resume the project at any time.
 | Bonus move: Thomas flare | #4 | merged |
 | Documentation (README, design decisions) | #6 | merged |
 | Final verification (subject + 375 tests) | — | passed |
-| PDF report of all changes | docs/report | in review |
+| PDF report of all changes (docs/RAPPORT_MODIFICATIONS.pdf) | docs/report | done |
