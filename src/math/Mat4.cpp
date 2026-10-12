@@ -66,6 +66,8 @@ Mat4 Mat4::rotationZ(float degrees)
 Mat4 Mat4::rotation(float degrees, const Vec3& axis)
 {
 	const Vec3 a = axis.normalized();
+	if (a.dot(a) == 0.0f)
+		return Mat4::identity();	// no axis, no rotation
 	const float c = std::cos(math::radians(degrees));
 	const float s = std::sin(math::radians(degrees));
 	const float t = 1.0f - c;

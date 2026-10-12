@@ -2,12 +2,15 @@
 
 #include "geometry/RoundedBox.hpp"
 
+#include <algorithm>
+
 namespace {
 
 constexpr float UNIT_SHAPE_ROUNDING = 0.2f;
 constexpr int UNIT_SHAPE_SEGMENTS = 6;
 constexpr float ORBIT_DEGREES_PER_PIXEL = 0.3f;
 constexpr float ZOOM_STEP = 0.9f;
+constexpr double MAX_FRAME_SECONDS = 0.1;	// avoids a jump after a stall (window drag...)
 
 } // namespace
 
@@ -30,7 +33,7 @@ void Application::run()
 		handleInput();
 
 		const double now = window_.time();
-		animator_.update(static_cast<float>(now - previousTime));
+		animator_.update(static_cast<float>(std::min(now - previousTime, MAX_FRAME_SECONDS)));
 		previousTime = now;
 
 		int width = 0;

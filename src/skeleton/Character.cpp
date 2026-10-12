@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <limits>
+#include <stdexcept>
 #include <utility>
 
 namespace {
@@ -46,7 +47,11 @@ Pose atOrigin(const Pose& pose)
 
 Character::Character() : contactHull_(unitCubeCorners()) {}
 
-Character::Character(std::vector<Vec3> contactHull) : contactHull_(std::move(contactHull)) {}
+Character::Character(std::vector<Vec3> contactHull) : contactHull_(std::move(contactHull))
+{
+	if (contactHull_.empty())
+		throw std::invalid_argument("Character: the contact hull needs at least one point");
+}
 
 HumanModel& Character::model()
 {

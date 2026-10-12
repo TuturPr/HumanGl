@@ -7,7 +7,7 @@ namespace {
 
 const Vec3 LIGHT_DIRECTION = Vec3{-0.45f, -1.0f, -0.35f}.normalized();
 const Vec3 BACKGROUND = {0.075f, 0.08f, 0.10f};
-constexpr float SHADOW_HEIGHT = 0.002f;	// just above the floor, avoids z-fighting
+constexpr float SHADOW_HEIGHT = 0.0f;
 
 } // namespace
 
@@ -85,11 +85,14 @@ void SceneRenderer::drawShadow(const Character& character, const Pose& pose, con
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glDepthMask(GL_FALSE);
 	glDisable(GL_CULL_FACE);	// the projection flips half of the triangles
+	glEnable(GL_POLYGON_OFFSET_FILL);	// drawn on the floor plane: pull it toward the camera
+	glPolygonOffset(-1.0f, -1.0f);
 
 	MatrixStack stack;
 	ShadowPartDrawer drawer(shadowShader_, unitShape_, planarShadowMatrix(LIGHT_DIRECTION, SHADOW_HEIGHT));
 	character.draw(stack, pose, drawer);
 
+	glDisable(GL_POLYGON_OFFSET_FILL);
 	glEnable(GL_CULL_FACE);
 	glDepthMask(GL_TRUE);
 	glDisable(GL_BLEND);
