@@ -50,3 +50,6 @@ constexpr float sideSign(Side side)
 }
 
 const char* bodyPartName(BodyPart part);
+
+// The same part on the other side of the body (itself for Torso, Head, Neck).
+BodyPart mirrorPart(BodyPart part);
