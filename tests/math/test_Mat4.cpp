@@ -245,3 +245,11 @@ TEST(Mat4, LookAtFromPositiveXPutsOriginOnNegativeZ)
 	// Looking down -X with +Y up, the camera right vector is world -Z.
 	expectVec(v.transformDirection(Vec3(0, 0, -1)), Vec3(1, 0, 0));
 }
+
+TEST(Mat4, RotationAroundZeroAxisIsIdentity)
+{
+	const Mat4 r = Mat4::rotation(45.0f, Vec3(0, 0, 0));
+	for (int row = 0; row < 4; ++row)
+		for (int col = 0; col < 4; ++col)
+			EXPECT_NEAR(r(row, col), row == col ? 1.0f : 0.0f, 1e-6f);
+}
