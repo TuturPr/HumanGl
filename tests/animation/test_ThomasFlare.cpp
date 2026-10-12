@@ -123,7 +123,7 @@ TEST(ThomasFlare, RawPoseIsAlwaysWithinJointLimits)
 				worstChannel = c;
 			}
 	}
-	EXPECT_LE(worst, 2.0f) << channelName(worstChannel) << " exceeds its limit by " << worst
+	EXPECT_LE(worst, 1e-3f) << channelName(worstChannel) << " exceeds its limit by " << worst
 						   << " degrees at t=" << worstTime;
 }
 
