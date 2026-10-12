@@ -50,27 +50,31 @@ TEST_OBJ		= $(CORE_SRC:%.cpp=$(BUILD)/%.o) $(TEST_SRC:%.cpp=$(BUILD)/%.o)
 all: $(NAME)
 
 $(NAME): $(OBJ)
-	$(CXX) $(CXXFLAGS) $(OBJ) $(LDLIBS) -o $@
+	@echo "Linking $@"
+	@$(CXX) $(CXXFLAGS) $(OBJ) $(LDLIBS) -o $@
 
 $(BUILD)/%.o: %.cpp
 	@mkdir -p $(dir $@)
-	$(CXX) $(CXXFLAGS) $(INCLUDES) $(DEFINES) -c $< -o $@
+	@echo "Compiling $<"
+	@$(CXX) $(CXXFLAGS) $(INCLUDES) $(DEFINES) -c $< -o $@
 
 $(BUILD)/%.o: %.c
 	@mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+	@echo "Compiling $<"
+	@$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
 test: $(TEST_NAME)
-	./$(TEST_NAME)
+	@./$(TEST_NAME)
 
 $(TEST_NAME): $(TEST_OBJ)
-	$(CXX) $(CXXFLAGS) $(TEST_OBJ) -lgtest -pthread -o $@
+	@echo "Linking $@"
+	@$(CXX) $(CXXFLAGS) $(TEST_OBJ) -lgtest -pthread -o $@
 
 clean:
-	rm -rf $(BUILD)
+	@rm -rf $(BUILD)
 
 fclean: clean
-	rm -f $(NAME) $(TEST_NAME)
+	@rm -f $(NAME) $(TEST_NAME)
 
 re: fclean all
 
