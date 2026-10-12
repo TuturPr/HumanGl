@@ -111,6 +111,11 @@ une partie est dessinée, et elle est appelée exactement une fois par partie. E
 dessine la forme 1x1x1 à l'origine de la matrice courante, mise à l'échelle. Un
 test vérifie qu'il y a exactement un appel par partie.
 
+**Plusieurs parcours par image, toujours un appel par partie.** À chaque image,
+la hiérarchie est parcourue plusieurs fois : pour trouver le contact au sol (ce
+parcours ne dessine rien), pour l'ombre puis pour le corps. Chaque parcours
+appelle `drawPart` exactement une fois par partie ; seul l'`IPartDrawer` change.
+
 **Ordre des rotations aux épaules et aux hanches.** L'abduction est appliquée
 d'abord, dans le repère de l'os ; la flexion vient ensuite, autour de l'axe X du
 parent, et fait pivoter vers l'avant le membre déjà écarté. Dans le code,
@@ -179,7 +184,8 @@ flare), seules les articulations *entre deux parties* sont limitées.
 
 ### Animations obligatoires
 - **Idle** : respiration et léger balancement.
-- **Walk** : cycle de marche décrit pour une seule jambe et un seul bras ; l'autre
+- **Walk** : marche sur place, volontairement, pour que le personnage reste
+  au centre de la caméra. Le cycle est décrit pour une seule jambe et un seul bras ; l'autre
   côté joue la même courbe décalée d'une demi-période (une seule source de vérité).
   Les bras se balancent à l'opposé des jambes.
 - **Jump** : flexion, impulsion, vol avec un vrai temps de vol, réception amortie.
