@@ -2,6 +2,7 @@
 
 #include "math/Mat4.hpp"
 
+#include <cstddef>
 #include <vector>
 
 // Replacement for the deprecated glPushMatrix / glPopMatrix / glTranslate ...
