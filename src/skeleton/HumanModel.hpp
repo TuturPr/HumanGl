@@ -26,18 +26,21 @@ public:
 	void draw(MatrixStack& stack, const Pose& pose, IPartDrawer& drawer) const;
 
 private:
-	// The only place a part is drawn: one call per part, unit shape at the
-	// origin of the current matrix.
-	void drawPart(MatrixStack& stack, BodyPart part, IPartDrawer& drawer) const;
+	// THE drawing function: the only place where a part is drawn, called
+	// exactly once per part. It draws the 1x1x1 unit shape at the origin of
+	// the current matrix, scaled to `extent` inside its own push/pop so that
+	// the scale never reaches the children.
+	void drawPart(MatrixStack& stack, BodyPart part, const Vec3& extent, IPartDrawer& drawer) const;
 
 	void drawHead(MatrixStack& stack, const Pose& pose, IPartDrawer& drawer) const;
 	void drawArm(MatrixStack& stack, Side side, const ArmPose& arm, IPartDrawer& drawer) const;
 	void drawLeg(MatrixStack& stack, Side side, const LegPose& leg, IPartDrawer& drawer) const;
 
-	// Draws a limb segment hanging from the current joint along -Y. It is
-	// stretched past its joints (by half its thickness at the top and by
-	// `distalOverlap` at the bottom) so that the rounded ends of neighbouring
-	// parts overlap and no gap appears when a joint bends.
+	// Positions a limb segment hanging from the current joint along -Y, then
+	// draws it with drawPart. It is stretched past its joints (by half its
+	// thickness at the top and by `distalOverlap` at the bottom) so that the
+	// rounded ends of neighbouring parts overlap and no gap appears when a
+	// joint bends.
 	void drawSegment(MatrixStack& stack, BodyPart part, float distalOverlap, IPartDrawer& drawer) const;
 	// Overlap at the joint between `part` and `child`: half the thickness of
 	// the thinner of the two, so the overlap never pokes out of the child.
