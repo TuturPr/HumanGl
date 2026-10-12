@@ -8,6 +8,8 @@ AnimationLibrary AnimationLibrary::createDefault()
 	library.add(clips::createIdle());
 	library.add(clips::createWalk());
 	library.add(clips::createJump());
+	library.add(clips::createDisco());
+	library.add(clips::createKungFu());
 	library.add(clips::createThomasFlare());
 	return library;
 }
