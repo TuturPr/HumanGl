@@ -33,6 +33,10 @@ struct Pose
 	float rootYaw   = 0.0f;	// turn around the vertical axis
 	float rootPitch = 0.0f;	// > 0 leans forward
 	float rootRoll  = 0.0f;	// > 0 leans toward the left side
+	// 0..1: how strongly the point touching the floor is pinned under
+	// rootOffset.x / z. 1 makes the body pivot around its support (a hand
+	// planted during a power move) instead of sliding it on the floor.
+	float supportPinning = 0.0f;
 
 	float neckPitch = 0.0f;	// > 0 looks down
 	float neckYaw   = 0.0f;	// > 0 looks to the left

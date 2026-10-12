@@ -37,6 +37,7 @@ Pose operator+(const Pose& a, const Pose& b)
 	r.rootYaw    = a.rootYaw + b.rootYaw;
 	r.rootPitch  = a.rootPitch + b.rootPitch;
 	r.rootRoll   = a.rootRoll + b.rootRoll;
+	r.supportPinning = a.supportPinning + b.supportPinning;
 	r.neckPitch  = a.neckPitch + b.neckPitch;
 	r.neckYaw    = a.neckYaw + b.neckYaw;
 	r.neckRoll   = a.neckRoll + b.neckRoll;
@@ -54,6 +55,7 @@ Pose operator*(const Pose& a, float s)
 	r.rootYaw    = a.rootYaw * s;
 	r.rootPitch  = a.rootPitch * s;
 	r.rootRoll   = a.rootRoll * s;
+	r.supportPinning = a.supportPinning * s;
 	r.neckPitch  = a.neckPitch * s;
 	r.neckYaw    = a.neckYaw * s;
 	r.neckRoll   = a.neckRoll * s;

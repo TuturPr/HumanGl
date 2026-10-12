@@ -16,30 +16,30 @@ std::vector<Vec3> unitCubeCorners()
 	return corners;
 }
 
-// Part drawer that only records the lowest world-space point of the body.
-class LowestPointFinder : public IPartDrawer
+// Part drawer that only collects the world-space hull points of the body.
+class HullCollector : public IPartDrawer
 {
 public:
-	explicit LowestPointFinder(const std::vector<Vec3>& hull) : hull_(hull) {}
+	explicit HullCollector(const std::vector<Vec3>& hull) : hull_(hull) {}
 
 	void drawUnitShape(BodyPart, const Mat4& model) override
 	{
 		for (const Vec3& point : hull_)
-			lowest_ = std::min(lowest_, model.transformPoint(point).y);
+			points_.push_back(model.transformPoint(point));
 	}
 
-	float lowest() const { return lowest_; }
+	const std::vector<Vec3>& points() const { return points_; }
 
 private:
 	const std::vector<Vec3>& hull_;
-	float lowest_ = std::numeric_limits<float>::max();
+	std::vector<Vec3> points_;
 };
 
-Pose withoutLift(const Pose& pose)
+Pose atOrigin(const Pose& pose)
 {
-	Pose grounded = pose;
-	grounded.rootOffset.y = 0.0f;
-	return grounded;
+	Pose centred = pose;
+	centred.rootOffset = {};
+	return centred;
 }
 
 } // namespace
@@ -58,20 +58,44 @@ const HumanModel& Character::model() const
 	return model_;
 }
 
-float Character::lowestPoint(const Pose& pose) const
+Character::Contact Character::contact(const Pose& pose) const
 {
 	MatrixStack stack;
-	LowestPointFinder finder(contactHull_);
-	model_.draw(stack, withoutLift(pose), finder);
-	return finder.lowest();
+	HullCollector collector(contactHull_);
+	model_.draw(stack, atOrigin(pose), collector);
+
+	float lowest = std::numeric_limits<float>::max();
+	for (const Vec3& point : collector.points())
+		lowest = std::min(lowest, point.y);
+
+	// Points near the floor, weighted by how close they are to it: a point
+	// fades in as it approaches the floor, so the support moves continuously
+	// when the body rolls from one hand (or foot) to the other.
+	Vec3 support;
+	float totalWeight = 0.0f;
+	for (const Vec3& point : collector.points())
+	{
+		const float weight = 1.0f - (point.y - lowest) / CONTACT_TOLERANCE;
+		if (weight > 0.0f)
+		{
+			support += point * weight;
+			totalWeight += weight;
+		}
+	}
+	return {lowest, support / totalWeight};
 }
 
 void Character::draw(MatrixStack& stack, const Pose& pose, IPartDrawer& drawer) const
 {
-	const Pose grounded = withoutLift(pose);
+	const Contact touch = contact(pose);
+	const float pinning = pose.supportPinning;
 
 	stack.push();
-	stack.translate({0.0f, pose.rootOffset.y - lowestPoint(grounded), 0.0f});
-	model_.draw(stack, grounded, drawer);
+	stack.translate({
+		pose.rootOffset.x - touch.support.x * pinning,
+		pose.rootOffset.y - touch.lowest,
+		pose.rootOffset.z - touch.support.z * pinning,
+	});
+	model_.draw(stack, atOrigin(pose), drawer);
 	stack.pop();
 }
