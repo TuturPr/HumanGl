@@ -40,7 +40,7 @@ TEST_SRC		= tests/test_main.cpp \
 				  tests/math/test_Vec3.cpp tests/math/test_Mat4.cpp tests/math/test_MatrixStack.cpp \
 				  tests/geometry/test_RoundedBox.cpp \
 				  tests/skeleton/test_Pose.cpp tests/skeleton/test_JointLimits.cpp \
-				  tests/skeleton/test_BodyDimensions.cpp tests/skeleton/test_HumanModel.cpp \
+				  tests/skeleton/test_BodyDimensions.cpp tests/skeleton/test_BodyPart.cpp tests/skeleton/test_HumanModel.cpp \
 				  tests/skeleton/test_Character.cpp \
 				  tests/animation/test_KeyframeTrack.cpp tests/animation/test_Animator.cpp \
 				  tests/animation/test_Clips.cpp \
