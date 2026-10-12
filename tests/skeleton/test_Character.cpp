@@ -2,6 +2,8 @@
 
 #include "../support/DrawHelpers.hpp"
 
+#include <stdexcept>
+
 using namespace testing_support;
 
 namespace {
@@ -334,4 +336,9 @@ TEST(CharacterPinning, PoseLerpBlendsSupportPinning)
 	b.supportPinning = 1.0f;
 	EXPECT_NEAR(lerp(a, b, 0.3f).supportPinning, 0.3f, 1e-6f);
 	EXPECT_FLOAT_EQ(Pose{}.supportPinning, 0.0f);
+}
+
+TEST(Character, EmptyContactHullThrows)
+{
+	EXPECT_THROW(Character(std::vector<Vec3>{}), std::invalid_argument);
 }
